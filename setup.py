@@ -18,7 +18,10 @@ setup(
     long_description=open('README.rst').read() + '\n\n' + open('CHANGELOG.rst').read(),
     keywords='redmine redmineup redminecrm redminelib easyredmine',
     python_requires='>=3.7, <4',
-    install_requires=['requests>=2.31.0'],
+    install_requires=[
+        'requests>=2.31.0',
+        'grequests>=0.7.0',
+    ],
     zip_safe=False,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
