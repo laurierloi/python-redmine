@@ -22,7 +22,8 @@ class GeventEngine(BaseEngine):
         if method.lower() == 'get': # Getting, we can use grequests
             unsent_requests = (grequests.get(url, params=params, session=self.session) for params in bulk_params)
             responses = grequests.map(unsent_requests)
-            return [responce[container] for ressponse in responses]
-            #return (resource for params in bulk_params for resource in self.request(method, url, params=params)[container])
+
+            processed_responses = (self.process_response(response)[container] for response in responses)
+            return [resource for response in processed_responses for resource in response]
         else:
             return [resource for params in bulk_params for resource in self.request(method, url, params=params)[container]]
