@@ -175,7 +175,7 @@ class BaseEngine:
             raise exceptions.RequestEntityTooLargeError
         elif status_code == 422:
             errors = response.json()['errors']
-            raise exceptions.ValidationError(', '.join(': '.join(e) if isinstance(e, list) else e for e in errors))
+            raise exceptions.ValidationError(', '.join(': '.join(e) if isinstance(e, list) else e for e in errors) + f' at url {response.request.url}')
         elif status_code == 500:
             raise exceptions.ServerError
 
