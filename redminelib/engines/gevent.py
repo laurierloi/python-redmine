@@ -21,8 +21,13 @@ class GeventEngine(BaseEngine):
             raise_on_redirect=True,
             raise_on_status=True
         )
-        session.mount('http://', HTTPAdapter(max_retries=retries))
-        session.mount('https://', HTTPAdapter(max_retries=retries))
+        adapter_config = {
+            'max_retries': retries,
+            'pool_maxsize': 100,
+            'pool_block': True,
+        }
+        session.mount('http://', HTTPAdapter(**adapter_config))
+        session.mount('https://', HTTPAdapter(**adapter_config))
 
         for param in params:
             setattr(session, param, params[param])
