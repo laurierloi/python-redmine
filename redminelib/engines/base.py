@@ -3,8 +3,10 @@ Base engine that defines common behaviour and settings for all engines.
 """
 
 import json
+import logging
 
 from .. import exceptions
+from . import config
 
 
 class BaseEngine:
@@ -17,6 +19,7 @@ class BaseEngine:
         :param string password: (optional). Password used for authentication.
         :param dict requests: (optional). Connection options.
         :param string impersonate: (optional). Username to impersonate.
+        :param EngineConfig config: (optional). Configuration object.
         :param bool ignore_response (optional). If True no response processing will be done at all.
         :param bool return_response (optional). Whether to return response or None.
         :param bool return_raw_response (optional). Whether to return raw or json encoded responses.
@@ -38,7 +41,8 @@ class BaseEngine:
         elif options.get('username') is not None and options.get('password') is not None:
             self.requests['auth'] = (options['username'], options['password'])
 
-        self.session = self.create_session(**self.requests)
+        self.config = options.get('config', config.EngineConfig())
+        self.session = self.create_session(**self.requests, config=self.config)
 
     @staticmethod
     def create_session(**params):
@@ -175,8 +179,9 @@ class BaseEngine:
             raise exceptions.RequestEntityTooLargeError
         elif status_code == 422:
             errors = response.json()['errors']
-            raise exceptions.ValidationError(', '.join(': '.join(e) if isinstance(e, list) else e for e in errors) + f' at url {response.request.url}')
+            raise exceptions.ValidationError(', '.join(': '.join(e) if isinstance(e, list) else e for e in errors))
         elif status_code == 500:
+            logging.error(response.content)
             raise exceptions.ServerError
 
         raise exceptions.UnknownError(status_code)
