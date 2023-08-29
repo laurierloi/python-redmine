@@ -32,6 +32,7 @@ class Redmine:
         :type raise_attr_exception: bool or tuple
         :param timezone: (optional). Whether to convert a naive datetime to a specific timezone aware one.
         :type timezone: str or cls
+        :param EngineConfig engine_config: (optional). Configuration object.
         :param cls engine: (optional). Engine that will be used to make requests to Redmine.
         """
         self.url = url.rstrip('/')
@@ -52,12 +53,20 @@ class Redmine:
         self.datetime_format = kwargs.pop('datetime_format', '%Y-%m-%dT%H:%M:%SZ')
         self.raise_attr_exception = kwargs.pop('raise_attr_exception', True)
 
-        engine = kwargs.pop('engine', engines.DefaultEngine)
+        self.engine_config = kwargs.pop('engine_config', engines.EngineConfig())
+        engine_arg = kwargs.pop('engine', None)
+        if engine_arg is None:
+            engine_arg = self.engine_config.engine
+
+        if isinstance(engine_arg, str):
+            engine = engines.EngineType[engine_arg].value
+        else:
+            engine = engine_arg
 
         if not inspect.isclass(engine) or not issubclass(engine, engines.BaseEngine):
             raise exceptions.EngineClassError
 
-        self.engine = engine(**kwargs)
+        self.engine = engine(**kwargs, config=self.engine_config)
 
     def __getattr__(self, resource_name):
         """
