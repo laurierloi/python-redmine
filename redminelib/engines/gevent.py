@@ -29,8 +29,7 @@ class GeventEngine(BaseEngine):
 
     def process_bulk_request(self, method, url, container, bulk_params):
         if method.lower() == 'get': # Getting, we can use grequests
-            unsent_requests = [grequests.get(url, params=params, session=self.session) for params in bulk_params]
-            print(f'number of requests {len(unsent_requests)}') # TODO: remove is only debug
+            unsent_requests = (grequests.get(url, params=params, session=self.session) for params in bulk_params)
 
             responses = grequests.map(unsent_requests, **self.config.grequests_map_args())
             try:
