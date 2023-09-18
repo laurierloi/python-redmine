@@ -10,6 +10,14 @@ class EngineConfig:
     pool_maxsize: int = 10
     group_size: int = 4
 
+    def __post_init__(self):
+        self.retries = int(self.retries)
+        self.backoff_factor = float(self.backoff_factor)
+        self.pool_block = bool(self.pool_block)
+        self.pool_connections = int(self.pool_connections)
+        self.pool_maxsize = int(self.pool_maxsize)
+        self.group_size = int(self.group_size)
+
     def retry_args(self):
         return {
             'total': self.retries,
