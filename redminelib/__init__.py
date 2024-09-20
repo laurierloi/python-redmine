@@ -59,7 +59,7 @@ class Redmine:
             engine_arg = self.engine_config.engine
 
         if isinstance(engine_arg, str):
-            engine = engines.EngineType[engine_arg].value
+            engine = engines.EngineType[engine_arg].get()
         else:
             engine = engine_arg
 

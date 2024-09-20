@@ -4,11 +4,18 @@ Defines engines for processing requests/responses to/from Redmine.
 
 from .config import EngineConfig
 from .base import BaseEngine
-from .gevent import GeventEngine
-from .sync import SyncEngine
 from enum import Enum
 
 class EngineType(Enum):
-    sync = SyncEngine
-    gevent = GeventEngine
-    default = GeventEngine
+    sync = 'sync'
+    gevent = 'gevent'
+    default = 'sync'
+
+    def get(self):
+        if self.value == 'gevent':
+            from .gevent import GeventEngine
+            return GeventEngine
+        elif self.value == 'sync':
+            from .sync import SyncEngine
+            return SyncEngine
+        raise NotImplementedError(f'Engine {self.name} is not yet implemented')
