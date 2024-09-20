@@ -1,13 +1,15 @@
 Python-Redmine
 ==============
 
-.. image:: https://badge.fury.io/py/python-redmine.svg
+|PyPI| |Tests| |Coveralls|
+
+.. |PyPI| image:: https://badge.fury.io/py/python-redmine.svg
    :target: https://badge.fury.io/py/python-redmine
 
-.. image:: https://img.shields.io/github/actions/workflow/status/maxtepkeev/python-redmine/tests.yml
+.. |Tests| image:: https://img.shields.io/github/actions/workflow/status/maxtepkeev/python-redmine/tests.yml.svg
    :target: https://github.com/maxtepkeev/python-redmine/actions/workflows/tests.yml
 
-.. image:: https://img.shields.io/coverallsCoverage/github/maxtepkeev/python-redmine?branch=master
+.. |Coveralls| image:: https://img.shields.io/coverallsCoverage/github/maxtepkeev/python-redmine?branch=master
    :target: https://coveralls.io/github/maxtepkeev/python-redmine?branch=master
 
 Python-Redmine is a library for communicating with a `Redmine <http://www.redmine.org>`__
@@ -54,7 +56,7 @@ Features
 
 * Supports 100% of Redmine API
 * Supports external Redmine plugins API
-* Supports Python 3.7 - 3.11 and PyPy3
+* Supports Python 3.7 - 3.12 and PyPy3
 * Supports different request engines
 * Extendable via custom resources and custom request engines
 * Extensively documented

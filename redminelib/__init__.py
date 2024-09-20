@@ -59,7 +59,7 @@ class Redmine:
             engine_arg = self.engine_config.engine
 
         if isinstance(engine_arg, str):
-            engine = engines.EngineType[engine_arg].value
+            engine = engines.EngineType[engine_arg].get()
         else:
             engine = engine_arg
 
@@ -118,10 +118,6 @@ class Redmine:
         if self.ver is not None and self.ver < (1, 4, 0):
             raise exceptions.VersionMismatchError('File uploading')
 
-        url = f'{self.url}/uploads.json'
-        headers = {'Content-Type': 'application/octet-stream'}
-        params = {'filename': filename or ''}
-
         # There are myriads of file-like object implementations here and there and some of them don't have
         # a "read" method, which is wrong, but that's what we have, on the other hand it looks like all of
         # them implement a "close" method, that's why we check for it here. Also, we don't want to close the
@@ -136,8 +132,8 @@ class Redmine:
             # We need to send bytes over the socket, so in case a file-like object contains a unicode
             # object underneath, we need to convert it to bytes, otherwise we'll get an exception
             if isinstance(c, str):
-                warnings.warn("File-like object contains unicode, hence an additional step is performed to convert "
-                              "its content to bytes, please consider switching to bytes to eliminate this warning",
+                warnings.warn('File-like object contains unicode, hence an additional step is performed to convert '
+                              'its content to bytes, please consider switching to bytes to eliminate this warning',
                               exceptions.PerformanceWarning)
                 f = io.BytesIO(f.read().encode('utf-8'))
 
@@ -147,8 +143,15 @@ class Redmine:
             if not os.path.isfile(f) or os.path.getsize(f) == 0:
                 raise exceptions.NoFileError
 
+            if not filename:
+                filename = os.path.basename(f)
+
             stream = open(f, 'rb')
             close = True
+
+        url = f'{self.url}/uploads.json'
+        headers = {'Content-Type': 'application/octet-stream'}
+        params = {'filename': filename or ''}
 
         response = self.engine.request('post', url, params=params, data=stream, headers=headers)
 

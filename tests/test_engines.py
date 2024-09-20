@@ -1,3 +1,5 @@
+import warnings
+
 from . import mock, BaseRedmineTestCase, Redmine
 
 from redminelib import engines, exceptions
@@ -6,7 +8,7 @@ from redminelib import engines, exceptions
 class BaseEngineTestCase(BaseRedmineTestCase):
     def test_engine_init(self):
         redmine = Redmine(self.url, key='123', impersonate='jsmith', requests={'foo': 'bar'})
-        self.assertEqual(redmine.engine.requests['params']['key'], '123')
+        self.assertEqual(redmine.engine.requests['headers']['X-Redmine-API-Key'], '123')
         self.assertEqual(redmine.engine.requests['headers']['X-Redmine-Switch-User'], 'jsmith')
         self.assertEqual(redmine.engine.requests['foo'], 'bar')
         redmine = Redmine(self.url, username='john', password='qwerty')
@@ -91,9 +93,16 @@ class BaseEngineTestCase(BaseRedmineTestCase):
         self.assertRaises(exceptions.UnknownError, lambda: self.redmine.engine.request('get', self.url))
 
     def test_http_protocol_exception(self):
-        self.response.history = [mock.Mock()]
-        self.redmine.url = 'http://foo.bar'
+        self.response.history = [mock.Mock(**{'status_code': 301, 'request.url': 'http://foo.bar'})]
         self.assertRaises(exceptions.HTTPProtocolError, lambda: self.redmine.engine.request('get', self.url))
+
+    def test_redirect_warning(self):
+        self.response.history = [mock.Mock(**{'status_code': 301, 'request.url': 'https://www.foo.bar'})]
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            self.redmine.engine.request('get', self.url)
+            self.assertEqual(len(w), 1)
+            self.assertIs(w[0].category, exceptions.PerformanceWarning)
 
     def test_engine_is_picklable(self):
         import pickle

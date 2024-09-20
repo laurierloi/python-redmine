@@ -2,7 +2,8 @@ from dataclasses import dataclass
 
 @dataclass
 class EngineConfig:
-    engine: str = 'gevent'
+    engine: str = 'sync'
+
     retries: int = 3
     backoff_factor: float = 1
     pool_block: bool = True

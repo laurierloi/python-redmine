@@ -1,8 +1,26 @@
 Changelog
 ---------
 
-2.5.0 (XXXX-XX-XX)
+2.6.0 (XXXX-XX-XX)
 ++++++++++++++++++
+
+**Improvements**:
+
+- Added `__eq__` methods to resources for direct instance equality comparison (`Issue #336
+  <https://github.com/maxtepkeev/python-redmine/pull/336>`__) (thanks to `Patrick Donnelly
+  <https://github.com/batrick>`__)
+
+**Bugfixes**:
+
+- Not all parameters, i.e. timeout, were forwarded to requests module (`Issue #343 <https://github.com/maxtepkeev/python-redmine/pull/343>`__)
+  (thanks to `timerke <https://github.com/timerke>`__)
+
+2.5.0 (2024-03-31)
+++++++++++++++++++
+
+**Deprecations**:
+
+- Requests version required >= 2.31.0
 
 **New Features**:
 
@@ -14,16 +32,43 @@ Changelog
 
 - Migrated CI to GitHub Actions, also we now test not only on Linux, but on macOS and Windows as well
 - ``dir(resource)`` and ``list(resource)`` now also show properties of an object
+- Support for ``issues_assigned`` and ``issues_authored`` relations in User object
+  (`Issue #317 <https://github.com/maxtepkeev/python-redmine/issues/317>`__)
+- Original filename will be used as a filename for all uploaded files if a path was provided and filename wasn't set
+- *Pro Edition:* Added support for RedmineUP Contact avatar add/update operations
+  (see `docs <https://python-redmine.com/resources/contact.html#create-methods>`__ for details)
 - *Pro Edition:* Added support for RedmineUP DealCategory ``create()``, ``update()``, ``delete()`` operations
   (see `docs <https://python-redmine.com/resources/deal_category.html#create-methods>`__ for details)
 - *Pro Edition:* RedmineUP CrmQuery resource now supports ``invoices`` and ``expenses`` relation attributes
+- ``PerformanceWarning`` will be issued when Python-Redmine does some unnecessary redirects before the actual
+  request is made
+
+**Changes**:
+
+- *Backwards Incompatible:* API key is now being sent in the X-Redmine-API-Key header instead of the key GET
+  parameter which makes things more secure in case of a failed connection, but it might created issues for servers
+  that don't do custom request header forwarding by default, so be sure to check your web server before upgrading
+  (`Issue #328 <https://github.com/maxtepkeev/python-redmine/issues/328>`__ and
+  `Issue #330 <https://github.com/maxtepkeev/python-redmine/issues/330>`__) (thanks to `Tom Misilo <https://github.com/misilot>`__
+  and `Ricardo Branco <https://github.com/ricardobranco777>`__)
+- *Backwards Incompatible:* User ``all`` operation now really returns all users, i.e. not only active, but locked,
+  registered and anonymous as well instead of only returning just active users in previous versions due to the
+  respect to Redmine's standard behaviour (`Issue #327 <https://github.com/maxtepkeev/python-redmine/issues/327>`__)
 
 **Bugfixes**:
 
 - Tests were failing on Windows OS
+- Tests were failing on Python 3.12 (`Issue #332 <https://github.com/maxtepkeev/python-redmine/pull/332>`__)
+  (thanks to `Michał Górny <https://github.com/mgorny>`__)
 - Some closed Issues weren't converted to Resource objects using ``redmine.search()``
+- *Pro Edition:* RedmineUP Invoice resource ``order`` attribute was returned as a dict instead of being converted to
+  Resource object
 - *Pro Edition:* RedmineUP CrmQuery resource ``deals`` and ``contacts`` relation attributes didn't work
 - *Pro Edition:* RedmineUP DealStatus resource ``deals`` relation attribute didn't work
+
+**Documentation**:
+
+- Mentioned support for ``author_id`` in Issue's resource filter operation
 
 2.4.0 (2023-01-18)
 ++++++++++++++++++

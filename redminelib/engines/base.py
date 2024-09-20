@@ -3,6 +3,8 @@ Base engine that defines common behaviour and settings for all engines.
 """
 
 import json
+import warnings
+
 import logging
 
 from .. import exceptions
@@ -27,7 +29,7 @@ class BaseEngine:
         self.ignore_response = options.pop('ignore_response', False)
         self.return_response = options.pop('return_response', True)
         self.return_raw_response = options.pop('return_raw_response', False)
-        self.requests = dict(dict(headers={}, params={}, data={}), **options.get('requests', {}))
+        self.requests = dict(dict(headers={}, params={}), **options.get('requests', {}))
 
         if self.ignore_response:
             self.requests['stream'] = True
@@ -37,7 +39,7 @@ class BaseEngine:
 
         # We would like to be authenticated by API key by default
         if options.get('key') is not None:
-            self.requests['params']['key'] = options['key']
+            self.requests['headers']['X-Redmine-API-Key'] = options['key']
         elif options.get('username') is not None and options.get('password') is not None:
             self.requests['auth'] = (options['username'], options['password'])
 
@@ -53,8 +55,7 @@ class BaseEngine:
         """
         raise NotImplementedError
 
-    @staticmethod
-    def construct_request_kwargs(method, headers, params, data):
+    def construct_request_kwargs(self, method, headers, params, data):
         """
         Constructs kwargs that will be used in all requests to Redmine.
 
@@ -64,7 +65,7 @@ class BaseEngine:
         :param data: (required). Data to send in the body of the request.
         :type data: dict, bytes or file-like object
         """
-        kwargs = {'data': data or {}, 'params': params or {}, 'headers': headers or {}}
+        kwargs = dict(self.requests, **{'data': data or {}, 'params': params or {}, 'headers': headers or {}})
 
         if method in ('post', 'put', 'patch') and 'Content-Type' not in kwargs['headers']:
             kwargs['data'] = json.dumps(data)
@@ -148,8 +149,17 @@ class BaseEngine:
 
         if response.history:
             r = response.history[0]
-            if r.is_redirect and r.request.url.startswith('http://') and response.request.url.startswith('https://'):
-                raise exceptions.HTTPProtocolError
+
+            if 300 <= r.status_code <= 399:
+                url1, url2 = str(r.request.url), str(response.request.url)
+
+                if (url1[:5] == 'http:' and url2[:6] == 'https:') or (url1[:6] == 'https:' and url2[:5] == 'http:'):
+                    raise exceptions.HTTPProtocolError
+                else:
+                    warnings.warn('Redirect detected during request-response, normally there should be no redirects, '
+                                  'so please check your Redmine URL for things like prepending www which redirects to '
+                                  'a no www domain and vice versa or using an old domain which redirects to a new one',
+                                  exceptions.PerformanceWarning)
 
         status_code = response.status_code
 

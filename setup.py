@@ -19,7 +19,7 @@ setup(
     keywords='redmine redmineup redminecrm redminelib easyredmine',
     python_requires='>=3.7, <4',
     install_requires=[
-        'requests>=2.28.2',
+        'requests>=2.31.0',
         'grequests>=0.7.0',
     ],
     zip_safe=False,
@@ -38,6 +38,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'

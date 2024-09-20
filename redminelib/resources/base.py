@@ -172,6 +172,12 @@ class BaseResource(metaclass=Registrar):
         if self._relations_name is None:
             self._relations_name = self.__class__.__name__.lower()
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.internal_id == other.internal_id
+        else:
+            return False
+
     def __getitem__(self, item):
         """
         Provides dictionary-like access to Resource attributes.
@@ -417,7 +423,8 @@ class BaseResource(metaclass=Registrar):
         if not self.is_new():
             self.pre_update()
             self.manager.update(self.internal_id, **self._changes)
-            self._decoded_attrs['updated_on'] = datetime.utcnow().strftime(self.manager.redmine.datetime_format)
+            self._decoded_attrs['updated_on'] = datetime.now(timezone.utc).strftime(
+                self.manager.redmine.datetime_format)
             self.post_update()
         else:
             self.pre_create()

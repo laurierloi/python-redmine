@@ -13,7 +13,8 @@ class RedmineTestCase(BaseRedmineTestCase):
         self.assertEqual(self.redmine.date_format, '%Y-%m-%d')
         self.assertEqual(self.redmine.datetime_format, '%Y-%m-%dT%H:%M:%SZ')
         self.assertEqual(self.redmine.raise_attr_exception, True)
-        self.assertEqual(self.redmine.engine.__class__, engines.EngineType[engines.EngineConfig().engine].value)
+        self.assertEqual(self.redmine.engine.__class__, engines.EngineType[engines.EngineConfig().engine].get())
+
 
     def test_set_attributes_through_kwargs(self):
         from datetime import timezone
@@ -41,8 +42,8 @@ class RedmineTestCase(BaseRedmineTestCase):
 
     def test_session_key(self):
         with self.redmine.session(key='opa'):
-            self.assertEqual(self.redmine.engine.requests['params']['key'], 'opa')
-        self.assertRaises(KeyError, lambda: self.redmine.engine.requests['params']['key'])
+            self.assertEqual(self.redmine.engine.requests['headers']['X-Redmine-API-Key'], 'opa')
+        self.assertRaises(KeyError, lambda: self.redmine.engine.requests['headers']['X-Redmine-API-Key'])
 
     def test_session_username_password(self):
         with self.redmine.session(username='john', password='smith'):
@@ -53,7 +54,8 @@ class RedmineTestCase(BaseRedmineTestCase):
         self.redmine.engine.requests['cert'] = ('bar', 'baz')
         requests = {'verify': False, 'timeout': 2, 'cert': ('foo', 'bar'), 'params': {'foo': 'bar'}}
         with self.redmine.session(key='secret', requests=requests):
-            self.assertEqual(self.redmine.engine.requests['params'], dict(key='secret', **requests['params']))
+            self.assertEqual(self.redmine.engine.requests['headers'], {'X-Redmine-API-Key': 'secret'})
+            self.assertEqual(self.redmine.engine.requests['params'], requests['params'])
             self.assertEqual(self.redmine.engine.requests['verify'], requests['verify'])
             self.assertEqual(self.redmine.engine.requests['timeout'], requests['timeout'])
             self.assertEqual(self.redmine.engine.requests['cert'], requests['cert'])
@@ -77,23 +79,23 @@ class RedmineTestCase(BaseRedmineTestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             self.assertEqual(self.redmine.upload(StringIO(b'\xcf\x86oo'.decode('utf-8')))['token'], '456789')
-            self.assertEquals(len(w), 1)
+            self.assertEqual(len(w), 1)
             self.assertIs(w[0].category, exceptions.PerformanceWarning)
 
     @mock.patch('redminelib.open', mock.mock_open(), create=True)
     def test_successful_file_download(self):
         self.response.status_code = 200
         self.response.iter_content = lambda chunk_size: (str(num) for num in range(0, 5))
-        self.assertEqual(self.redmine.download('http://foo/bar.txt', '/some/path/'), '/some/path/bar.txt')
+        self.assertEqual(self.redmine.download(f'{self.url}/bar.txt', '/some/path/'), '/some/path/bar.txt')
 
     def test_successful_in_memory_file_download(self):
         self.response.status_code = 200
         self.response.iter_content = lambda: (str(num) for num in range(0, 5))
-        self.assertEqual(''.join(self.redmine.download('http://foo/bar.txt').iter_content()), '01234')
+        self.assertEqual(''.join(self.redmine.download(f'{self.url}/bar.txt').iter_content()), '01234')
 
     def test_file_url_exception(self):
         self.response.status_code = 200
-        self.assertRaises(exceptions.FileUrlError, lambda: self.redmine.download('http://bad_url', '/some/path'))
+        self.assertRaises(exceptions.FileUrlError, lambda: self.redmine.download('https://bad_url', '/some/path'))
 
     def test_file_upload_no_file_exception(self):
         self.assertRaises(exceptions.NoFileError, lambda: self.redmine.upload('foo',))
