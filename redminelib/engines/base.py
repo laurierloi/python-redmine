@@ -2,6 +2,7 @@
 Base engine that defines common behaviour and settings for all engines.
 """
 
+import backoff
 import json
 import warnings
 
@@ -73,6 +74,14 @@ class BaseEngine:
 
         return kwargs
 
+    @backoff.on_exception(
+        backoff.expo,
+        (
+            exceptions.ValidationError,
+            exceptions.ServerError,
+        ),
+        max_time=60,
+    )
     def request(self, method, url, headers=None, params=None, data=None):
         """
         Makes a single request to Redmine and returns processed response.

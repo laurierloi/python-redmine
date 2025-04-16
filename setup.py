@@ -21,6 +21,7 @@ setup(
     install_requires=[
         'requests>=2.31.0',
         'grequests>=0.7.0',
+        'backoff>=2.2.1',
     ],
     zip_safe=False,
     classifiers=[
