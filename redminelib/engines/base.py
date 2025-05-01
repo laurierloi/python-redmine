@@ -77,6 +77,7 @@ class BaseEngine:
     @backoff.on_exception(
         backoff.expo,
         (
+            exceptions.ResourceNotFoundError,
             exceptions.ValidationError,
             exceptions.ServerError,
         ),
