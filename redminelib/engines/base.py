@@ -78,7 +78,6 @@ class BaseEngine:
         backoff.expo,
         (
             exceptions.ResourceNotFoundError,
-            exceptions.ValidationError,
             exceptions.ServerError,
         ),
         max_time=60,

@@ -75,6 +75,21 @@ class BaseEngineTestCase(BaseRedmineTestCase):
         self.response.status_code = 500
         self.assertRaises(exceptions.ServerError, lambda: self.redmine.engine.request('post', self.url))
 
+    def test_server_error_is_retried(self):
+        self.response.status_code = 500
+        successful_response = mock.Mock(**{
+            'status_code': 200,
+            'history': [],
+            'request.url': self.url,
+            'content': '',
+        })
+        self.patch_requests.side_effect = [self.response, successful_response]
+
+        with mock.patch('backoff._sync.time.sleep'):
+            self.assertTrue(self.redmine.engine.request('post', self.url))
+
+        self.assertEqual(self.patch_requests.call_count, 2)
+
     def test_request_entity_too_large_error_exception(self):
         self.response.status_code = 413
         self.assertRaises(exceptions.RequestEntityTooLargeError, lambda: self.redmine.engine.request('post', self.url))
@@ -83,6 +98,7 @@ class BaseEngineTestCase(BaseRedmineTestCase):
         self.response.status_code = 422
         self.response.json.return_value = {'errors': ['foo', 'bar', ['foo', 'bar']]}
         self.assertRaises(exceptions.ValidationError, lambda: self.redmine.engine.request('post', self.url))
+        self.assertEqual(self.patch_requests.call_count, 1)
 
     def test_not_found_error_exception(self):
         self.response.status_code = 404
